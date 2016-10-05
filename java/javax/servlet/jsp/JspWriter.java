@@ -442,6 +442,36 @@ public abstract class JspWriter extends java.io.Writer {
         return autoFlush;
     }
 
+    /**
+     * Writes a string of known-safe content in the JSP's output language.
+     * <p>
+     * This default implementation simply calls {@code this.write(s)}
+     * but may be overridden to allow distinguishing between trusted strings
+     * in the template that provide contextual cues used to autoescape
+     * untrusted content.
+     *
+     * @param s must not be derived from an untrustworthy input.
+     * @throws IOException when there is a problem with the underlying buffer.
+     */
+    public void writeKnownSafeContent(String s) throws IOException {
+      this.write(s);
+    }
+
+      /**
+     * Writes a string of known-safe content in the JSP's output language.
+     * <p>
+     * This default implementation simply calls {@code this.write(chars)}
+     * but may be overridden to allow distinguishing between trusted strings
+     * in the template that provide contextual cues used to autoescape
+     * untrusted content.
+     *
+     * @param chars must not be derived from an untrustworthy input.
+     * @throws IOException when there is a problem with the underlying buffer.
+     */
+    public void writeKnownSafeContent(char[] chars) throws IOException {
+      this.write(chars);
+    }
+
     /*
      * fields
      */

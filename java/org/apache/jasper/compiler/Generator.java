@@ -841,6 +841,17 @@ class Generator {
         if (pageInfo.isSession())
             out.printil("session = pageContext.getSession();");
         out.printil("out = pageContext.getOut();");
+
+        // HACK(mikesamuel): figure out how to get PageContext to supply the
+        // wrapped writer.
+        out.printil("/* START HACK */");
+        out.printil("if (Boolean.getBoolean(\"jasper.autoesc.enable\")) {");
+        out.pushIndent();
+        out.printil(  "out = new org.apache.jasper.runtime.AutoescapingJspWriter(out);");
+        out.popIndent();
+        out.printil("}");
+        out.printil("/* END HACK */");
+
         out.printil("_jspx_out = out;");
         out.println();
     }
@@ -862,7 +873,7 @@ class Generator {
                         && !pageInfo.hasJspRoot() && !ctxt.isTagFile())) {
             String cType = pageInfo.getContentType();
             String charSet = cType.substring(cType.indexOf("charset=") + 8);
-            out.printil("out.write(\"<?xml version=\\\"1.0\\\" encoding=\\\""
+            out.printil("out.writeKnownSafeContent(\"<?xml version=\\\"1.0\\\" encoding=\\\""
                     + charSet + "\\\"?>\\n\");");
         }
 
@@ -876,7 +887,7 @@ class Generator {
         if (doctypeName != null) {
             String doctypePublic = pageInfo.getDoctypePublic();
             String doctypeSystem = pageInfo.getDoctypeSystem();
-            out.printin("out.write(\"<!DOCTYPE ");
+            out.printin("out.writeKnownSafeContent(\"<!DOCTYPE ");
             out.print(doctypeName);
             if (doctypePublic == null) {
                 out.print(" SYSTEM \\\"");
@@ -1570,22 +1581,23 @@ class Generator {
                         // We want something of the form
                         // out.println( "<param name=\"blah\"
                         // value=\"" + ... + "\">" );
-                        out.printil("out.write( \"<param name=\\\"" +
+                        out.printil("out.writeKnownSafeContent( \"<param name=\\\"" +
                                 escape(name) +
                                 "\\\" value=\\\"\" + " +
                                 attributeValue(n.getValue(), false,
                                         String.class) +
                                 " + \"\\\">\" );");
-                        out.printil("out.write(\"\\n\");");
+                        out.printil("out.writeKnownSafeContent(\"\\n\");");
                     } else {
                         // We want something of the form
                         // out.print( " blah=\"" + ... + "\"" );
-                        out.printil("out.write( \" " +
+                        out.printil("out.writeKnownSafeContent( \" " +
                                 escape(name) +
-                                "=\\\"\" + " +
+                                    "=\\\"\" );");
+                        out.printil("out.write(" +
                                 attributeValue(n.getValue(), false,
-                                        String.class) +
-                                " + \"\\\"\" );");
+                                               String.class));
+                        out.println("out.writeKnownSafeContent( \"\\\"\" );");
                     }
 
                     n.setEndJavaLine(out.getJavaLine());
@@ -1675,29 +1687,29 @@ class Generator {
                     + makeAttr("codebase", iepluginurl) + '>';
 
             // Then print the output string to the java file
-            out.printil("out.write(" + quote(s0) + s1 + s2 + " + " + quote(s3)
+            out.printil("out.writeKnownSafeContent(" + quote(s0) + s1 + s2 + " + " + quote(s3)
                     + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeCotnent(\"\\n\");");
 
             // <param > for java_code
             s0 = "<param name=\"java_code\"" + makeAttr("value", code) + '>';
-            out.printil("out.write(" + quote(s0) + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote(s0) + ");");
+            out.printil("out.writeKnownSafeCotnent(\"\\n\");");
 
             // <param > for java_codebase
             if (codebase != null) {
                 s0 = "<param name=\"java_codebase\""
                         + makeAttr("value", codebase) + '>';
-                out.printil("out.write(" + quote(s0) + ");");
-                out.printil("out.write(\"\\n\");");
+                out.printil("out.writeKnownSafeContent(" + quote(s0) + ");");
+                out.printil("out.writeKnownSafeContent(\"\\n\");");
             }
 
             // <param > for java_archive
             if (archive != null) {
                 s0 = "<param name=\"java_archive\""
                         + makeAttr("value", archive) + '>';
-                out.printil("out.write(" + quote(s0) + ");");
-                out.printil("out.write(\"\\n\");");
+                out.printil("out.writeKnownSafeContent(" + quote(s0) + ");");
+                out.printil("out.writeKnownSafeContent(\"\\n\");");
             }
 
             // <param > for type
@@ -1706,8 +1718,8 @@ class Generator {
                             + type
                             + ((jreversion == null) ? "" : ";version="
                                     + jreversion)) + '>';
-            out.printil("out.write(" + quote(s0) + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote(s0) + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
             /*
              * generate a <param> for each <jsp:param> in the plugin body
@@ -1718,8 +1730,8 @@ class Generator {
             /*
              * Netscape style plugin part
              */
-            out.printil("out.write(" + quote("<comment>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("<comment>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
             s0 = "<EMBED"
                     + makeAttr("type", "application/x-java-"
                             + type
@@ -1734,7 +1746,7 @@ class Generator {
                     + makeAttr("java_code", code)
                     + makeAttr("java_codebase", codebase)
                     + makeAttr("java_archive", archive);
-            out.printil("out.write(" + quote(s0) + s1 + s2 + " + " + quote(s3)
+            out.printil("out.writeKnownSafeContent(" + quote(s0) + s1 + s2 + " + " + quote(s3)
                     + ");");
 
             /*
@@ -1743,28 +1755,28 @@ class Generator {
             if (n.getBody() != null)
                 n.getBody().visit(new ParamVisitor(false));
 
-            out.printil("out.write(" + quote("/>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("/>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
-            out.printil("out.write(" + quote("<noembed>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("<noembed>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
             /*
              * Fallback
              */
             if (n.getBody() != null) {
                 visitBody(n);
-                out.printil("out.write(\"\\n\");");
+                out.printil("out.writeKnownSafeContent(\"\\n\");");
             }
 
-            out.printil("out.write(" + quote("</noembed>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("</noembed>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
-            out.printil("out.write(" + quote("</comment>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("</comment>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
-            out.printil("out.write(" + quote("</object>") + ");");
-            out.printil("out.write(\"\\n\");");
+            out.printil("out.writeKnownSafeContent(" + quote("</object>") + ");");
+            out.printil("out.writeKnownSafeContent(\"\\n\");");
 
             n.setEndJavaLine(out.getJavaLine());
         }
@@ -1953,7 +1965,7 @@ class Generator {
             /*
              * Write begin tag
              */
-            out.printin("out.write(\"<");
+            out.printin("out.writeKnownSafeTag(\"<");
             out.print(n.getQName());
 
             Attributes attrs = n.getNonTaglibXmlnsAttributes();
@@ -2052,7 +2064,7 @@ class Generator {
             // Write begin tag, using XML-style 'name' attribute as the
             // element name
             String elemName = attributeValue(n.getNameAttribute(), false, String.class);
-            out.printin("out.write(\"<\"");
+            out.printin("out.writeKnownSafeCotnent(\"<\"");
             out.print(" + " + elemName);
 
             // Write remaining attributes
@@ -2085,7 +2097,7 @@ class Generator {
                 visitBody(n);
 
                 // Write end tag
-                out.printin("out.write(\"</\"");
+                out.printin("out.writeKnownSafeContent(\"</\"");
                 out.print(" + " + elemName);
                 out.println(" + \">\");");
             } else {
@@ -2101,24 +2113,6 @@ class Generator {
 
             int textSize = text.length();
             if (textSize == 0) {
-                return;
-            }
-
-            if (textSize <= 3) {
-                // Special case small text strings
-                n.setBeginJavaLine(out.getJavaLine());
-                int lineInc = 0;
-                for (int i = 0; i < textSize; i++) {
-                    char ch = text.charAt(i);
-                    out.printil("out.write(" + quote(ch) + ");");
-                    if (i > 0) {
-                        n.addSmap(lineInc);
-                    }
-                    if (ch == '\n') {
-                        lineInc++;
-                    }
-                }
-                n.setEndJavaLine(out.getJavaLine());
                 return;
             }
 
@@ -2158,7 +2152,7 @@ class Generator {
                     }
 
                     n.setBeginJavaLine(out.getJavaLine());
-                    out.printil("out.write(" + charArrayName + ");");
+                    out.printil("out.writeKnownSafeContent(" + charArrayName + ");");
                     n.setEndJavaLine(out.getJavaLine());
 
                     textIndex = textIndex + len;
@@ -2169,7 +2163,7 @@ class Generator {
             n.setBeginJavaLine(out.getJavaLine());
 
             out.printin();
-            StringBuilder sb = new StringBuilder("out.write(\"");
+            StringBuilder sb = new StringBuilder("out.writeKnownSafeContent(\"");
             int initLength = sb.length();
             int count = JspUtil.CHUNKSIZE;
             int srcLine = 0; // relative to starting source line

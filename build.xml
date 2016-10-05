@@ -194,6 +194,7 @@
   <!-- Classpaths -->
   <path id="compile.classpath">
     <pathelement location="${jdt.jar}"/>
+    <pathelement location="${autoesc.jar}"/>
   </path>
 
   <path id="tomcat.classpath">
@@ -1860,6 +1861,7 @@ Apache Tomcat ${version} native binaries for Win64 AMD64/EMT64 platform.
         <include name="jasper.jar"/>
         <include name="jasper-el.jar"/>
         <include name="jaspic-api.jar"/>
+        <include name="autoesc.jar"/>
         <include name="servlet-api.jar"/>
         <include name="websocket-api.jar"/>
         <include name="tomcat-websocket.jar"/>
@@ -2641,6 +2643,11 @@ skip.installer property in build.properties" />
       <param name="destdir" value="${base.path}"/>
     </antcall>
 
+    <antcall target="downloadfile">
+      <param name="sourcefile" value="${autoesc.loc}"/>
+      <param name="destfile" value="${autoesc.jar}"/>
+      <param name="destdir" value="${base.path}"/>
+    </antcall>
   </target>
 
   <target name="download-cobertura"

@@ -199,3 +199,9 @@ findbugs.home=${base.path}/findbugs-${findbugs.version}
 findbugs.lib=${findbugs.home}/lib
 findbugs.jar=${findbugs.lib}/findbugs-ant.jar
 findbugs.loc=${base-sf.loc}/project/findbugs/findbugs/${findbugs.version}/findbugs-${findbugs.version}.tar.gz
+
+# ----- autoesc.jar used by the AutoescapingJspWriter -----
+autoesc.version=1.0
+autoesc.home=${base.path}/autoesc-${autoesc.version}
+autoesc.jar=${autoesc.home}/autoesc-${autoesc.version}.jar
+autoesc.loc=${base-maven.loc}/com/mikesamuel/html-autoescaper/${autoesc.version}/html-autoescaper-${autoesc.version}.jar
