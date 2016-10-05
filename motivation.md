@@ -54,3 +54,4 @@ This allows hooking a custom JSP writer into the page context
 which [contextually autoescapes](https://rawgit.com/mikesamuel/sanitized-jquery-templates/trunk/safetemplate.html#problem_definition)
 expression results taking the burden of XSS-safety off the template authors' shoulders.
 
+The [tests](https://github.com/mikesamuel/tomcat/blob/trunk/test/org/apache/jasper/runtime/TestAutoescapingJspWriter.java#L133) for the new `AutoescapingJspWriter` class show how a sequence of `writeKnownUnsafeContent` and regular `write` calls can safely compose HTML from trusted and untrusted content in a way that's intuitive to web developers.
