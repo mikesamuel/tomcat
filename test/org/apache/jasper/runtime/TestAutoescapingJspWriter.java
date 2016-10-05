@@ -154,7 +154,7 @@ public final class TestAutoescapingJspWriter extends TomcatBaseTest {
   }
 
   @Test
-  public void testWriterFiltersUrls() throws IOException {
+  public void testWriterFiltersBadUrl() throws IOException {
     writer.writeKnownSafeContent("<a href=");
     writer.write("javascript:doEvil()");
     writer.writeKnownSafeContent(">link</a>");
@@ -162,6 +162,18 @@ public final class TestAutoescapingJspWriter extends TomcatBaseTest {
 
     assertEquals(
         "<a href=\"#ZautoescZ\">link</a>",
+        this.backingBuffer.toString());
+  }
+
+  @Test
+  public void testWriterFiltersGoodUrl() throws IOException {
+    writer.writeKnownSafeContent("<a href=");
+    writer.write("http://foo.com/bar baz");
+    writer.writeKnownSafeContent(">link</a>");
+    writer.close();
+
+    assertEquals(
+        "<a href=\"http://foo.com/bar%20baz\">link</a>",
         this.backingBuffer.toString());
   }
 
